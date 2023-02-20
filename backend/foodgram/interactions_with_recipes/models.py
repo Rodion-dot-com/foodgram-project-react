@@ -1,0 +1,48 @@
+from django.db import models
+
+from recipes.models import Recipe
+from users.models import User
+
+
+class Favorites(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='пользователь',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='рецепт'
+    )
+
+    class Meta:
+        unique_together = (
+            'user',
+            'recipe',
+        )
+        verbose_name = 'избранный рецепт'
+        verbose_name_plural = 'избранные рецепты'
+
+    def __str__(self):
+        return f'{self.recipe} в избранном у {self.user}'
+
+
+class ShoppingList(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='пользователь',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='рецепт'
+    )
+
+    class Meta:
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'списки покупок'
+
+    def __str__(self):
+        return f'{self.recipe} в корзине у {self.user}'

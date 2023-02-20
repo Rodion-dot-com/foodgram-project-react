@@ -1,5 +1,6 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
+
 from users.models import User
 
 MAX_CHAR_FIELD_SIZE = 200
@@ -71,6 +72,11 @@ class Recipe(models.Model):
         null=True,
         verbose_name='картинка',
     )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='дата публикации',
+        db_index=True
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
@@ -78,10 +84,6 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         through='TagRecipe',
-    )
-    liked_users = models.ManyToManyField(
-        User,
-        through='Favorites',
     )
 
     class Meta:
@@ -109,6 +111,10 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
+        unique_together = (
+            'ingredient',
+            'recipe',
+        )
         verbose_name = 'входящий ингредиент'
         verbose_name_plural = 'входящие ингредиенты'
 
@@ -141,28 +147,3 @@ class TagRecipe(models.Model):
 
     def __str__(self):
         return f'{self.recipe} #{self.tag.slug}'
-
-
-class Favorites(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='пользователь',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='рецепт'
-    )
-
-    class Meta:
-        unique_together = (
-            'user',
-            'recipe',
-        )
-        verbose_name = 'избранный рецепт'
-        verbose_name_plural = 'избранные рецепты'
-
-    def __str__(self):
-        return f'{self.recipe} в избранном у {self.user}'
-
