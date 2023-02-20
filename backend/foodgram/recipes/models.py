@@ -30,6 +30,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         max_length=MAX_CHAR_FIELD_SIZE,
+        db_index=True,
         verbose_name='название',
     )
     unit_of_measurement = models.CharField(
@@ -38,9 +39,11 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        unique_together = (
-            'name',
-            'unit_of_measurement',
+        constraints = (
+            models.UniqueConstraint(
+                fields=('name', 'unit_of_measurement'),
+                name='name_unit_of_measurement_unique',
+            ),
         )
         verbose_name = 'ингредиент'
         verbose_name_plural = 'ингредиенты'
@@ -111,9 +114,11 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
-        unique_together = (
-            'ingredient',
-            'recipe',
+        constraints = (
+            models.UniqueConstraint(
+                fields=('ingredient', 'recipe'),
+                name='ingredient_recipe_unique',
+            ),
         )
         verbose_name = 'входящий ингредиент'
         verbose_name_plural = 'входящие ингредиенты'
@@ -138,12 +143,14 @@ class TagRecipe(models.Model):
     )
 
     class Meta:
-        unique_together = (
-            'tag',
-            'recipe',
+        constraints = (
+            models.UniqueConstraint(
+                fields=('tag', 'recipe'),
+                name='tag_recipe_unique',
+            ),
         )
         verbose_name = 'указанный тег'
         verbose_name_plural = 'указанные теги'
 
     def __str__(self):
-        return f'{self.recipe} #{self.tag.slug}'
+        return f'{self.recipe}- {self.tag}'

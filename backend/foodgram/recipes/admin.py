@@ -15,15 +15,24 @@ class TagInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author',)
+    list_display = ('name', 'author')
     list_filter = ('name', 'author', 'tags')
     inlines = (IngredientInline, TagInline,)
+    readonly_fields = ('number_of_liked_users',)
+
+    def number_of_liked_users(self, obj):
+        return obj.liked_users.count()
+
+    number_of_liked_users.short_description = (
+        'число добавлений этого рецепта в избранное'
+    )
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'unit_of_measurement',)
     list_filter = ('name',)
+    search_fields = ('name',)
 
 
 @admin.register(Tag)

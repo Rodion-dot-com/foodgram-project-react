@@ -13,13 +13,16 @@ class Favorites(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='рецепт'
+        verbose_name='рецепт',
+        related_name='liked_users'
     )
 
     class Meta:
-        unique_together = (
-            'user',
-            'recipe',
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='favorites_user_recipe_unique',
+            ),
         )
         verbose_name = 'избранный рецепт'
         verbose_name_plural = 'избранные рецепты'
