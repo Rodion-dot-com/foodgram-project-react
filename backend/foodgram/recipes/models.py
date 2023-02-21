@@ -1,22 +1,29 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from recipes.validators import color_hex_validator
 from users.models import User
 
-MAX_CHAR_FIELD_SIZE = 200
-MAX_SLUG_FIELD_SIZE = 200
+DEFAULT_FIELD_MAX_LENGTH = 200
+MAX_COLOR_FIELD_SIZE = 7
 
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=MAX_CHAR_FIELD_SIZE,
+        max_length=DEFAULT_FIELD_MAX_LENGTH,
         unique=True,
         verbose_name='название',
     )
     slug = models.SlugField(
-        max_length=MAX_SLUG_FIELD_SIZE,
+        max_length=DEFAULT_FIELD_MAX_LENGTH,
         unique=True,
         verbose_name='уникальный адрес группы',
+    )
+    hex_color_code = models.CharField(
+        max_length=MAX_COLOR_FIELD_SIZE,
+        unique=True,
+        validators=(color_hex_validator,),
+        verbose_name='цветовой HEX-код',
     )
 
     class Meta:
@@ -29,12 +36,12 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=MAX_CHAR_FIELD_SIZE,
+        max_length=DEFAULT_FIELD_MAX_LENGTH,
         db_index=True,
         verbose_name='название',
     )
     unit_of_measurement = models.CharField(
-        max_length=MAX_CHAR_FIELD_SIZE,
+        max_length=DEFAULT_FIELD_MAX_LENGTH,
         verbose_name='единицы измерения',
     )
 
@@ -60,7 +67,7 @@ class Recipe(models.Model):
         verbose_name='автор публикации',
     )
     name = models.CharField(
-        max_length=MAX_CHAR_FIELD_SIZE,
+        max_length=DEFAULT_FIELD_MAX_LENGTH,
         verbose_name='название',
     )
     text = models.TextField(
