@@ -23,12 +23,12 @@ class Command(BaseCommand):
             reader = csv.DictReader(
                 csvfile,
                 delimiter=',',
-                fieldnames=('name', 'unit_of_measurement')
+                fieldnames=('name', 'measurement_unit')
             )
             objs = (
                 Ingredient(
                     name=row.get('name'),
-                    unit_of_measurement=row.get('unit_of_measurement')
+                    measurement_unit=row.get('measurement_unit')
                 ) for row in reader
             )
             try:

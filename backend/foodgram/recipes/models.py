@@ -5,7 +5,7 @@ from recipes.validators import color_hex_validator
 from users.models import User
 
 DEFAULT_FIELD_MAX_LENGTH = 200
-MAX_COLOR_FIELD_SIZE = 7
+MAX_COLOR_FIELD_LENGTH = 7
 
 
 class Tag(models.Model):
@@ -19,8 +19,8 @@ class Tag(models.Model):
         unique=True,
         verbose_name='уникальный адрес группы',
     )
-    hex_color_code = models.CharField(
-        max_length=MAX_COLOR_FIELD_SIZE,
+    color = models.CharField(
+        max_length=MAX_COLOR_FIELD_LENGTH,
         unique=True,
         validators=(color_hex_validator,),
         verbose_name='цветовой HEX-код',
@@ -40,7 +40,7 @@ class Ingredient(models.Model):
         db_index=True,
         verbose_name='название',
     )
-    unit_of_measurement = models.CharField(
+    measurement_unit = models.CharField(
         max_length=DEFAULT_FIELD_MAX_LENGTH,
         verbose_name='единицы измерения',
     )
@@ -48,8 +48,8 @@ class Ingredient(models.Model):
     class Meta:
         constraints = (
             models.UniqueConstraint(
-                fields=('name', 'unit_of_measurement'),
-                name='name_unit_of_measurement_unique',
+                fields=('name', 'measurement_unit'),
+                name='name_measurement_unit_unique',
             ),
         )
         verbose_name = 'ингредиент'
@@ -133,7 +133,7 @@ class IngredientRecipe(models.Model):
     def __str__(self):
         return (
             f'{self.ingredient.name} - {self.quantity} '
-            f'{self.ingredient.unit_of_measurement}'
+            f'{self.ingredient.measurement_unit}'
         )
 
 
