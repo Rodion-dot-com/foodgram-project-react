@@ -2,7 +2,9 @@ from djoser.views import UserViewSet
 from rest_framework import filters, viewsets
 
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
-                             RecipeSerializer, TagSerializer)
+                             RecipeReadSerializer,
+                             RecipeCreateUpdateDestroySerializer,
+                             TagSerializer)
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
@@ -26,4 +28,8 @@ class CustomUserViewSet(UserViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+
+    def get_serializer_class(self):
+        if self.action in {'list', 'retrieve'}:
+            return RecipeReadSerializer
+        return RecipeCreateUpdateDestroySerializer

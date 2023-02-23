@@ -87,10 +87,10 @@ class Recipe(models.Model):
         verbose_name='дата публикации',
         db_index=True
     )
-    # ingredients = models.ManyToManyField(
-    #     Ingredient,
-    #     through='IngredientRecipe',
-    # )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='IngredientRecipe',
+    )
     tags = models.ManyToManyField(
         Tag,
         through='TagRecipe',
@@ -114,7 +114,6 @@ class IngredientRecipe(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='рецепт',
-        related_name='ingredients',
     )
     amount = models.SmallIntegerField(
         validators=(MinValueValidator(1),),
