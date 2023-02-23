@@ -87,10 +87,10 @@ class Recipe(models.Model):
         verbose_name='дата публикации',
         db_index=True
     )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        through='IngredientRecipe',
-    )
+    # ingredients = models.ManyToManyField(
+    #     Ingredient,
+    #     through='IngredientRecipe',
+    # )
     tags = models.ManyToManyField(
         Tag,
         through='TagRecipe',
@@ -108,15 +108,16 @@ class IngredientRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='ингредиент'
+        verbose_name='ингредиент',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='рецепт',
+        related_name='ingredients',
     )
-    quantity = models.FloatField(
-        validators=(MinValueValidator(0),),
+    amount = models.SmallIntegerField(
+        validators=(MinValueValidator(1),),
         verbose_name='количество',
     )
 
@@ -132,7 +133,7 @@ class IngredientRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'{self.ingredient.name} - {self.quantity} '
+            f'{self.ingredient.name} - {self.amount} '
             f'{self.ingredient.measurement_unit}'
         )
 

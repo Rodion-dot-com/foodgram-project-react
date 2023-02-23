@@ -137,12 +137,12 @@ REST_FRAMEWORK = {
 }
 
 
-SERIALIZERS = {
+OVERRIDDEN_DJOSER_SERIALIZERS = {
     'user': 'api.serializers.CustomUserSerializer',
     'current_user': 'api.serializers.CustomUserSerializer',
 }
 
 DJOSER = {
-    'SERIALIZERS': SERIALIZERS,
+    'SERIALIZERS': OVERRIDDEN_DJOSER_SERIALIZERS,
     'LOGIN_FIELD': 'email',
 }
