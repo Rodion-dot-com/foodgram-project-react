@@ -84,15 +84,9 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
             'name', 'text', 'cooking_time'
         )
 
-    def create(self, validated_data):
-        ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
-        tags = validated_data.pop('tags')
-        recipe = Recipe(
-            author=self.context.get('request').user,
-            **validated_data
-        )
-
-        ingredient_recipe_objs = (
+    @staticmethod
+    def create_ingredient_recipe_objs(ingredientrecipe_set, recipe):
+        IngredientRecipe.objects.bulk_create(
             IngredientRecipe(
                 ingredient=Ingredient.objects.get(
                     pk=ingredient_recipe['ingredient']['id'].id,
@@ -101,20 +95,27 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
                 amount=ingredient_recipe['amount'],
             ) for ingredient_recipe in ingredientrecipe_set
         )
-        tag_recipe_objs = (
+
+    @staticmethod
+    def create_tag_recipe_objs(tags, recipe):
+        TagRecipe.objects.bulk_create(
             TagRecipe(
                 tag=Tag.objects.get(pk=tag.id),
                 recipe=recipe,
             ) for tag in tags
         )
 
-        recipe.save()
-        IngredientRecipe.objects.bulk_create(
-            ingredient_recipe_objs
+    def create(self, validated_data):
+        ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+
+        self.create_ingredient_recipe_objs(
+            ingredientrecipe_set,
+            recipe,
         )
-        TagRecipe.objects.bulk_create(
-            tag_recipe_objs
-        )
+        self.create_tag_recipe_objs(tags, recipe)
+
         return recipe
 
     def update(self, instance, validated_data):
@@ -127,28 +128,18 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
 
         instance.tagrecipe_set.all().delete()
         instance.ingredientrecipe_set.all().delete()
+        instance.save()
 
         ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
         tags = validated_data.pop('tags')
-
-        ingredient_recipe_objs = (
-            IngredientRecipe(
-                ingredient=Ingredient.objects.get(
-                    pk=ingredient_recipe['ingredient']['id'].id,
-                ),
-                recipe=instance,
-                amount=ingredient_recipe['amount'],
-            ) for ingredient_recipe in ingredientrecipe_set
-        )
-        tag_recipe_objs = (
-            TagRecipe(
-                tag=Tag.objects.get(pk=tag.id),
-                recipe=instance,
-            ) for tag in tags
-        )
-
-        instance.save()
-        IngredientRecipe.objects.bulk_create(ingredient_recipe_objs)
-        TagRecipe.objects.bulk_create(tag_recipe_objs)
+        self.create_ingredient_recipe_objs(ingredientrecipe_set, instance)
+        self.create_tag_recipe_objs(tags, instance)
 
         return instance
+
+
+class ShortRecipeReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'cooking_time')
+        read_only_fields = ('id', 'name', 'cooking_time')
