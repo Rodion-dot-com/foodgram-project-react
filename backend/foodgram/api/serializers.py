@@ -66,13 +66,26 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         many=True, source='ingredientrecipe_set', read_only=True,
     )
     image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = (
             'id', 'tags', 'author', 'ingredients',
-            'name', 'image', 'text', 'cooking_time'
+            'name', 'image', 'text', 'cooking_time',
+            'is_favorited', 'is_in_shopping_cart',
         )
+
+    def get_is_favorited(self, obj):
+        current_user = self.context['request'].user
+        return (not current_user.is_anonymous
+                and current_user.favorite_list.filter(recipe=obj).exists())
+
+    def get_is_in_shopping_cart(self, obj):
+        current_user = self.context['request'].user
+        return (not current_user.is_anonymous
+                and current_user.shopping_list.filter(recipe=obj).exists())
 
 
 class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):

@@ -8,7 +8,9 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeCreateUpdateDestroySerializer,
                              RecipeReadSerializer, ShortRecipeReadSerializer,
@@ -73,7 +75,7 @@ class CustomUserViewSet(UserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=False)
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         users = [
             follow.following for follow in (
@@ -92,6 +94,7 @@ class CustomUserViewSet(UserViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:
@@ -172,7 +175,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=False)
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = (
