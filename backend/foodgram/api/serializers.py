@@ -1,6 +1,7 @@
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
 from users.models import User
@@ -16,15 +17,18 @@ class CustomUserSerializer(UserSerializer):
             'first_name', 'last_name', 'is_subscribed',
         )
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError('Недоступное имя пользователя')
-        return value
-
     def get_is_subscribed(self, obj):
         current_user = self.context['request'].user
         return (not current_user.is_anonymous
                 and current_user.subscriptions.filter(following=obj).exists())
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email', 'username', 'first_name', 'last_name', 'password'
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -61,6 +65,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source='ingredientrecipe_set', read_only=True,
     )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -77,6 +82,7 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source='ingredientrecipe_set',
     )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -163,10 +169,12 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeReadSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'cooking_time')
-        read_only_fields = ('id', 'name', 'cooking_time')
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class UserRecipesSerializer(CustomUserSerializer):
