@@ -1,7 +1,8 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-from recipes.models import Ingredient, Recipe, Tag, IngredientRecipe, TagRecipe
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
 from users.models import User
 
 
@@ -126,16 +127,39 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
             'cooking_time', instance.cooking_time
         )
 
-        instance.tagrecipe_set.all().delete()
-        instance.ingredientrecipe_set.all().delete()
+        if 'ingredients' in self.initial_data:
+            instance.ingredientrecipe_set.all().delete()
+            ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
+            self.create_ingredient_recipe_objs(ingredientrecipe_set, instance)
+
+        if 'tags' in self.initial_data:
+            instance.tagrecipe_set.all().delete()
+            tags = validated_data.pop('tags')
+            self.create_tag_recipe_objs(tags, instance)
+
         instance.save()
-
-        ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
-        tags = validated_data.pop('tags')
-        self.create_ingredient_recipe_objs(ingredientrecipe_set, instance)
-        self.create_tag_recipe_objs(tags, instance)
-
         return instance
+
+    def validate_ingredients(self, ingredientrecipe_set):
+        unique_ingredients = set()
+        for ingredientrecipe in ingredientrecipe_set:
+            current_id = ingredientrecipe['ingredient']['id'].id
+            if current_id in unique_ingredients:
+                raise ValidationError(
+                    f'Ингредиент с id {current_id} уже добавлен',
+                )
+            unique_ingredients.add(current_id)
+        return ingredientrecipe_set
+
+    def validate_tags(self, tags):
+        unique_tags = set()
+        for tag in tags:
+            if tag.id in unique_tags:
+                raise ValidationError(
+                    f'Ингредиент с id {tag.id} уже добавлен',
+                )
+            unique_tags.add(tag.id)
+        return tags
 
 
 class ShortRecipeReadSerializer(serializers.ModelSerializer):
@@ -143,3 +167,26 @@ class ShortRecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'cooking_time')
         read_only_fields = ('id', 'name', 'cooking_time')
+
+
+class UserRecipesSerializer(CustomUserSerializer):
+    recipes_count = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username',
+            'first_name', 'last_name', 'is_subscribed',
+            'recipes_count', 'recipes',
+        )
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all()
+        query_params = self.context['request'].query_params
+        if 'recipes_limit' in query_params:
+            recipes = recipes[:int(query_params['recipes_limit'])]
+        return ShortRecipeReadSerializer(instance=recipes, many=True).data

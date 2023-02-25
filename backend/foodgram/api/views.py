@@ -1,21 +1,21 @@
 import csv
 
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from django.http import HttpResponse
 from rest_framework import filters, status, viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.response import Response
 
-from api.serializers import (CustomUserSerializer, ShortRecipeReadSerializer,
-                             IngredientSerializer,
-                             RecipeReadSerializer,
+from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeCreateUpdateDestroySerializer,
-                             TagSerializer)
+                             RecipeReadSerializer, ShortRecipeReadSerializer,
+                             TagSerializer, UserRecipesSerializer)
 from interactions_with_recipes.models import Favorites, ShoppingList
 from recipes.models import Ingredient, Recipe, Tag
-from users.models import User
+from users.models import Follow, User
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -34,6 +34,61 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
+    @action(detail=True, methods=['post', 'delete'])
+    def subscribe(self, request, id=None):
+        following_user = get_object_or_404(User, pk=id)
+        is_already_subscribed = request.user.subscriptions.filter(
+            following=following_user
+        )
+        if request.method == 'POST':
+            if following_user == request.user:
+                return Response(
+                    {'errors': 'You can not subscribe to yourself'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if is_already_subscribed.exists():
+                return Response(
+                    {'errors': 'A subscription with such fields '
+                               '"user" "following" already exists'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            Follow.objects.create(user=request.user, following=following_user)
+            return Response(
+                UserRecipesSerializer(
+                    following_user,
+                    context={'request': request},
+                ).data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        elif is_already_subscribed.exists():
+            is_already_subscribed.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(
+            {'errors': 'A subscription with such fields '
+                       '"user" "following" not exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=False)
+    def subscriptions(self, request):
+        users = [
+            follow.following for follow in (
+                request.user.subscriptions.select_related('following')
+            )
+        ]
+        return Response(
+            UserRecipesSerializer(
+                users,
+                context={'request': request},
+                many=True,
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -45,6 +100,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        if self.action == 'update':
+            raise MethodNotAllowed('PUT')
+        return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk=None):
@@ -120,8 +180,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         writer = csv.writer(response)
         for shopping_entry in request.user.shopping_list.values(
-            'recipe__ingredients__name',
-            'recipe__ingredients__measurement_unit'
+                'recipe__ingredients__name',
+                'recipe__ingredients__measurement_unit'
         ).annotate(amount=Sum('recipe__ingredientrecipe__amount')):
             writer.writerow(shopping_entry.values())
         return response
