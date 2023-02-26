@@ -1,5 +1,4 @@
 from django_filters.rest_framework import FilterSet, ModelMultipleChoiceFilter
-
 from recipes.models import Recipe, Tag
 
 
