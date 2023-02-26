@@ -15,6 +15,8 @@ from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeCreateUpdateDestroySerializer,
                              RecipeReadSerializer, ShortRecipeReadSerializer,
                              TagSerializer, UserRecipesSerializer)
+from api.pagination import CustomPageNumberPagination
+
 from interactions_with_recipes.models import Favorites, ShoppingList
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import Follow, User
@@ -35,6 +37,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = CustomPageNumberPagination
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id=None):
@@ -95,6 +98,7 @@ class CustomUserViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
+    pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:
