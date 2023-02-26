@@ -1,13 +1,12 @@
 import csv
 import os
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 from recipes.models import Ingredient
 
 PATH_TO_INGREDIENTS = os.path.join(
-    os.path.dirname(os.path.dirname(settings.BASE_DIR)),
+    os.path.dirname(os.path.abspath(__file__)),
     'data',
     'ingredients.csv',
 )
