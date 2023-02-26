@@ -1,5 +1,16 @@
 import csv
 
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from api.filtersets import TitleFilter
 from api.pagination import CustomPageNumberPagination
 from api.permissions import IsAuthorOrReadOnly
@@ -7,18 +18,8 @@ from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeCreateUpdateDestroySerializer,
                              RecipeReadSerializer, ShortRecipeReadSerializer,
                              TagSerializer, UserRecipesSerializer)
-from django.db.models import Sum
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from interactions_with_recipes.models import Favorites, ShoppingList
 from recipes.models import Ingredient, Recipe, Tag
-from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.exceptions import MethodNotAllowed
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from users.models import Follow, User
 
 

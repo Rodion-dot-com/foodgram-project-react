@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from interactions_with_recipes.models import Favorites, ShoppingList
 
 
