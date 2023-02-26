@@ -1,4 +1,5 @@
-from django_filters import ModelMultipleChoiceFilter, FilterSet
+from django_filters.rest_framework import FilterSet, ModelMultipleChoiceFilter
+
 from recipes.models import Recipe, Tag
 
 
@@ -12,4 +13,3 @@ class TitleFilter(FilterSet):
     class Meta:
         model = Recipe
         fields = ('author', 'tags',)
-
