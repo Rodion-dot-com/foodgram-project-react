@@ -12,10 +12,16 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='ingredientrecipe',
-            options={'verbose_name': 'рецепт - ингредиент', 'verbose_name_plural': 'рецепты - ингредиенты'},
+            options={
+                'verbose_name': 'рецепт - ингредиент',
+                'verbose_name_plural': 'рецепты - ингредиенты'
+            },
         ),
         migrations.AlterModelOptions(
             name='tagrecipe',
-            options={'verbose_name': 'рецепт - тег', 'verbose_name_plural': 'рецепты - теги'},
+            options={
+                'verbose_name': 'рецепт - тег',
+                'verbose_name_plural': 'рецепты - теги'
+            },
         ),
     ]

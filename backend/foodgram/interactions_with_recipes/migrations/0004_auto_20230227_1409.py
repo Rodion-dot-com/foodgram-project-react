@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='favorites',
             name='recipe',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='liked_users', to='recipes.Recipe', verbose_name='рецепт'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='liked_users',
+                to='recipes.Recipe', verbose_name='рецепт'
+            ),
         ),
     ]
