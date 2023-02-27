@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('tags', TagViewSet)
 router.register('ingredients', IngredientViewSet)
-router.register('recipes', RecipeViewSet, basename='recipes')
+router.register('recipes', RecipeViewSet)
 router.register('users', CustomUserViewSet)
 
 urlpatterns = [

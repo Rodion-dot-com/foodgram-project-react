@@ -1,6 +1,6 @@
 import csv
 
-from api.filtersets import TitleFilter
+from api.filtersets import RecipeFilter
 from api.pagination import CustomPageNumberPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
@@ -98,26 +98,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = TitleFilter
-
-    def get_queryset(self):
-        value_enable_filter = '1'
-        is_favorited = (self.request.query_params.get('is_favorited') ==
-                        value_enable_filter)
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart') == value_enable_filter
-        is_anonymous = self.request.user.is_anonymous
-        if is_favorited and is_in_shopping_cart and not is_anonymous:
-            return Recipe.objects.filter(
-                liked_users__user=self.request.user
-            ).filter(
-                shoppinglist__user=self.request.user
-            )
-        if is_favorited and not is_anonymous:
-            return Recipe.objects.filter(liked_users__user=self.request.user)
-        if is_in_shopping_cart and not is_anonymous:
-            return Recipe.objects.filter(shoppinglist__user=self.request.user)
-        return Recipe.objects.all()
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:
