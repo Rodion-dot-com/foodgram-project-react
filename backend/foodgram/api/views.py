@@ -80,16 +80,16 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
-        page = self.paginate_queryset(
+        pages = self.paginate_queryset(
             User.objects.filter(subscribers__user=request.user)
         )
-        return Response(
+
+        return self.get_paginated_response(
             UserRecipesSerializer(
-                page,
+                pages,
                 context={'request': request},
                 many=True,
-            ).data,
-            status=status.HTTP_200_OK,
+            ).data
         )
 
 
