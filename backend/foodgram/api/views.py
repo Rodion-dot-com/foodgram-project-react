@@ -80,14 +80,12 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
-        users = [
-            follow.following for follow in (
-                request.user.subscriptions.select_related('following')
-            )
-        ]
+        page = self.paginate_queryset(
+            User.objects.filter(subscribers__user=request.user)
+        )
         return Response(
             UserRecipesSerializer(
-                users,
+                page,
                 context={'request': request},
                 many=True,
             ).data,
