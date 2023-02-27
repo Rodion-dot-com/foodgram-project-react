@@ -64,9 +64,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            sudo docker pull rodion04/foodgram:latest
             sudo docker-compose stop
             sudo docker-compose rm web
+            sudo docker pull rodion04/foodgram:latest
             :> .env
             echo SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" >> .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
