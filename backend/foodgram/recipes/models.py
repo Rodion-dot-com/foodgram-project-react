@@ -127,8 +127,8 @@ class IngredientRecipe(models.Model):
                 name='ingredient_recipe_unique',
             ),
         )
-        verbose_name = 'входящий ингредиент'
-        verbose_name_plural = 'входящие ингредиенты'
+        verbose_name = 'рецепт - ингредиент'
+        verbose_name_plural = 'рецепты - ингредиенты'
 
     def __str__(self):
         return (
@@ -156,8 +156,8 @@ class TagRecipe(models.Model):
                 name='tag_recipe_unique',
             ),
         )
-        verbose_name = 'указанный тег'
-        verbose_name_plural = 'указанные теги'
+        verbose_name = 'рецепт - тег'
+        verbose_name_plural = 'рецепты - теги'
 
     def __str__(self):
         return f'{self.recipe}- {self.tag}'
