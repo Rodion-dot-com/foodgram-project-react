@@ -101,11 +101,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_queryset(self):
-        value_enable_filter = '1'
-        is_favorited = (self.request.query_params.get(
-                    'is_favorited') == value_enable_filter)
-        is_in_shopping_cart = (self.request.query_params.get(
-            'is_in_shopping_cart') == value_enable_filter)
+        is_favorited = self.request.query_params.get('is_favorited') == '1'
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart') == '1'
         is_anonymous = self.request.user.is_anonymous
         if is_favorited and is_in_shopping_cart and not is_anonymous:
             return Recipe.objects.filter(
