@@ -107,9 +107,7 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
     def create_ingredient_recipe_objs(ingredientrecipe_set, recipe):
         IngredientRecipe.objects.bulk_create(
             IngredientRecipe(
-                ingredient=Ingredient.objects.get(
-                    pk=ingredient_recipe['ingredient']['id'].id,
-                ),
+                ingredient_id=ingredient_recipe['ingredient']['id'].id,
                 recipe=recipe,
                 amount=ingredient_recipe['amount'],
             ) for ingredient_recipe in ingredientrecipe_set
@@ -119,7 +117,7 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
     def create_tag_recipe_objs(tags, recipe):
         TagRecipe.objects.bulk_create(
             TagRecipe(
-                tag=Tag.objects.get(pk=tag.id),
+                tag_id=tag.id,
                 recipe=recipe,
             ) for tag in tags
         )
