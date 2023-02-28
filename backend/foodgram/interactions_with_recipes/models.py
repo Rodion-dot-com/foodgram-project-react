@@ -3,7 +3,7 @@ from recipes.models import Recipe
 from users.models import User
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -45,6 +45,12 @@ class ShoppingList(models.Model):
     )
 
     class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='shoppinglist_user_recipe_unique',
+            ),
+        )
         verbose_name = 'список покупок'
         verbose_name_plural = 'списки покупок'
 

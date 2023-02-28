@@ -1,9 +1,9 @@
 from django.contrib import admin
-from interactions_with_recipes.models import Favorites, ShoppingList
+from interactions_with_recipes.models import Favorite, ShoppingList
 
 
-@admin.register(Favorites)
-class FavoritesAdmin(admin.ModelAdmin):
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe',)
     list_filter = ('user', 'recipe',)
 
