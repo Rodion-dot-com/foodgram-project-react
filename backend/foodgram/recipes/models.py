@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+
 from recipes.validators import color_hex_validator
 from users.models import User
 
