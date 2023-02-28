@@ -138,13 +138,6 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
-
         if 'ingredients' in self.initial_data:
             instance.ingredientrecipe_set.all().delete()
             ingredientrecipe_set = validated_data.pop('ingredientrecipe_set')
@@ -155,8 +148,7 @@ class RecipeCreateUpdateDestroySerializer(serializers.ModelSerializer):
             tags = validated_data.pop('tags')
             self.create_tag_recipe_objs(tags, instance)
 
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def validate_ingredients(self, ingredientrecipe_set):
         unique_ingredients = set()
