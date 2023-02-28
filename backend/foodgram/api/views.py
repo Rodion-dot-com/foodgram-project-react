@@ -12,7 +12,6 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from interactions_with_recipes.models import Favorites, ShoppingList
 from recipes.models import Ingredient, Recipe, Tag
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -113,21 +112,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             raise MethodNotAllowed('PUT')
         return super().update(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post', 'delete'])
-    def favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        favorites_obj_with_current_recipe = request.user.favorite_list.filter(
-            recipe=recipe
+    @staticmethod
+    def create_destroy_interactions_with_recipes(request, recipe, queryset):
+        if request.method not in {'POST', 'DELETE'}:
+            raise MethodNotAllowed(request.method)
+
+        model = queryset.model
+        interactions_obj_with_current_recipe = queryset.filter(
+            recipe=recipe,
+            user=request.user
         )
         if request.method == 'POST':
-            if favorites_obj_with_current_recipe.exists():
+            if interactions_obj_with_current_recipe.exists():
                 return Response(
-                    {'errors': 'Favorites with the following fields recipe '
-                               'and user already exists'},
+                    {'errors': f'{model.__name__} with the following fields '
+                               f'recipe and user already exists'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            Favorites.objects.create(
+            model.objects.create(
                 user=request.user,
                 recipe=recipe
             )
@@ -136,47 +139,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED
             )
 
-        if favorites_obj_with_current_recipe.exists():
-            favorites_obj_with_current_recipe.delete()
+        if interactions_obj_with_current_recipe.exists():
+            interactions_obj_with_current_recipe.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(
-            {'errors': 'Favorites with the following fields recipe '
-                       'and user not exists'},
+            {'errors': f'{model.__name__} with the following fields recipe '
+                       f'and user not exists'},
             status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=True, methods=['post', 'delete'])
+    def favorite(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        return self.create_destroy_interactions_with_recipes(
+            request, recipe, request.user.favorite_list
         )
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        shopping_obj_with_current_recipe = request.user.shopping_list.filter(
-            recipe=recipe
-        )
-        if request.method == 'POST':
-            if shopping_obj_with_current_recipe.exists():
-                return Response(
-                    {'errors': 'Shoppinglist with the following fields recipe '
-                               'and user already exists'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            ShoppingList.objects.create(
-                user=request.user,
-                recipe=recipe
-            )
-            return Response(
-                ShortRecipeReadSerializer(recipe).data,
-                status=status.HTTP_201_CREATED
-            )
-
-        if shopping_obj_with_current_recipe.exists():
-            shopping_obj_with_current_recipe.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(
-            {'errors': 'Shoppinglist with the following fields recipe '
-                       'and user not exists'},
-            status=status.HTTP_400_BAD_REQUEST
+        return self.create_destroy_interactions_with_recipes(
+            request, recipe, request.user.shopping_list
         )
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
