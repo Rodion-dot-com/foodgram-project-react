@@ -170,6 +170,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'attachment; filename=shoppinglist.csv'
         )
         writer = csv.writer(response)
+        header = ('Ингредиенты', 'Единицы измерения', 'Количество')
+        writer.writerow(header)
         for shopping_entry in request.user.shopping_list.values(
                 'recipe__ingredients__name',
                 'recipe__ingredients__measurement_unit'
