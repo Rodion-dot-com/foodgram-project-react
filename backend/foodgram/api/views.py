@@ -170,11 +170,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'attachment; filename=shoppinglist.csv'
         )
         writer = csv.writer(response)
-        header = ('Ингредиенты', 'Единицы измерения', 'Количество')
-        writer.writerow(header)
         for shopping_entry in request.user.shopping_list.values(
                 'recipe__ingredients__name',
                 'recipe__ingredients__measurement_unit'
         ).annotate(amount=Sum('recipe__ingredientrecipe__amount')):
-            writer.writerow(shopping_entry.values())
+            name = shopping_entry.get('recipe__ingredients__name')
+            amount = shopping_entry.get('amount')
+            measurement_unit = shopping_entry.get(
+                'recipe__ingredients__measurement_unit'
+            )
+
+            writer.writerow((
+                f'название: {name}',
+                f'количество: {amount}',
+                f'единицы измерения: {measurement_unit}',
+            ))
         return response
