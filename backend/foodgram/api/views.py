@@ -114,10 +114,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     @staticmethod
-    def create_destroy_interactions_with_recipes(request, recipe, queryset):
+    def create_destroy_interactions_with_recipes(request, recipe_id, queryset):
         if request.method not in {'POST', 'DELETE'}:
             raise MethodNotAllowed(request.method)
 
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
         model = queryset.model
         interactions_obj_with_current_recipe = queryset.filter(
             recipe=recipe,
@@ -152,16 +153,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
         return self.create_destroy_interactions_with_recipes(
-            request, recipe, request.user.favorite_list
+            request, pk, request.user.favorite_list
         )
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
         return self.create_destroy_interactions_with_recipes(
-            request, recipe, request.user.shopping_list
+            request, pk, request.user.shopping_list
         )
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
