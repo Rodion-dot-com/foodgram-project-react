@@ -1,5 +1,6 @@
 from django_filters.rest_framework import (BooleanFilter, FilterSet,
                                            ModelMultipleChoiceFilter)
+from rest_framework.filters import SearchFilter
 
 from recipes.models import Recipe, Tag
 
@@ -28,3 +29,16 @@ class RecipeFilter(FilterSet):
         if value and not user.is_anonymous:
             return queryset.filter(shoppinglist__user=user)
         return queryset
+
+
+class IngredientSearchFilter(SearchFilter):
+    def get_search_fields(self, view, request):
+        if request.query_params.get('name'):
+            return ('^name',)
+        return super().get_search_fields(view, request)
+
+    def get_search_terms(self, request):
+        if request.query_params.get('name'):
+            searched_name = request.query_params.get('name')
+            return (searched_name,)
+        return super().get_search_terms(request)
